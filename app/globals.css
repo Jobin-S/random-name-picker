@@ -3,8 +3,13 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #14162E;
+  --card-background: #1C1F3B;
+  --foreground: #FFFFFF;
+  --accent: #3B82F6;
+  --success: #10B981;
+  --success-light: #34D399;
+  --border: #2A2F55;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -17,5 +22,20 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans);
+}
+
+.glass-card {
+  background: rgba(28, 31, 59, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+}
+
+.drop-shadow-glow {
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
+}
+
+.drop-shadow-success {
+  filter: drop-shadow(0 0 8px rgba(52, 211, 153, 0.5));
 }

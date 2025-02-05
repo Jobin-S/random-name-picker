@@ -1,101 +1,109 @@
-import Image from "next/image";
+'use client'
+
+import { useState, useCallback, useEffect } from 'react'
+import dynamic from 'next/dynamic'
+import NameInput from '../components/NameInput'
+import NameList from '../components/NameList'
+
+const Confetti = dynamic(() => import('react-confetti'), { ssr: false })
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [names, setNames] = useState<string[]>([])
+  const [isRaffling, setIsRaffling] = useState(false)
+  const [highlightedName, setHighlightedName] = useState<string>('')
+  const [winner, setWinner] = useState<string>('')
+  const [showConfetti, setShowConfetti] = useState(false)
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const addName = (name: string) => {
+    if (name.trim() === '') return
+    if (names.includes(name.trim())) return
+    setNames([...names, name.trim()])
+  }
+
+  const addNames = (newNames: string[]) => {
+    const uniqueNames = newNames.filter(
+      name => name.trim() !== '' && !names.includes(name.trim())
+    );
+    if (uniqueNames.length > 0) {
+      setNames([...names, ...uniqueNames]);
+    }
+  };
+
+  const removeName = (nameToRemove: string) => {
+    setNames(names.filter(name => name !== nameToRemove))
+  }
+
+  const startRaffle = useCallback(async () => {
+    if (names.length < 2 || isRaffling) return;
+    setIsRaffling(true);
+    setWinner('');
+
+    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+    
+    // Create a local copy of names to work with
+    let currentNames = [...names];
+    
+    while (currentNames.length > 1) {
+      // Highlight loop for current round
+      for (let i = 0; i < 10; i++) {
+        for (const name of currentNames) {
+          setHighlightedName(name);
+          await delay(100);
+        }
+      }
+
+      // Eliminate one name
+      const eliminatedIndex = Math.floor(Math.random() * currentNames.length);
+      const eliminatedName = currentNames[eliminatedIndex];
+      setHighlightedName(eliminatedName);
+      await delay(1000);
+      
+      if (currentNames.length === 2) {
+        // Final round - set the other name as winner
+        const winner = currentNames.find(name => name !== eliminatedName)!;
+        setWinner(winner);
+        setShowConfetti(true);
+        setNames([winner]);
+        break;
+      } else {
+        // Remove eliminated name and continue
+        currentNames = currentNames.filter(name => name !== eliminatedName);
+        setNames(currentNames);
+        await delay(500); // Brief pause between rounds
+      }
+    }
+    
+    setHighlightedName('');
+    setIsRaffling(false);
+  }, [names]);
+
+  return (
+    <main className="min-h-screen p-4 sm:p-8 bg-background">
+      <div className="max-w-[90%] w-[1400px] mx-auto">
+        <h1 className="text-4xl font-bold text-center mb-8 text-foreground">
+          Random Name Picker
+        </h1>
+        <div className="space-y-6">
+          <NameInput onAddName={addName} onAddNames={addNames} />
+          
+          {names.length > 0 && (
+            <button
+              onClick={startRaffle}
+              disabled={isRaffling || names.length < 2}
+              className="w-full py-4 bg-success text-white rounded-xl hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-lg"
+            >
+              {isRaffling ? 'Picking...' : 'Pick a Person'}
+            </button>
+          )}
+
+          <NameList 
+            names={names} 
+            highlightedName={highlightedName}
+            winner={winner}
+          />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
-}
+      </div>
+      {showConfetti && <Confetti recycle={false} onConfettiComplete={() => setShowConfetti(false)} />}
+    </main>
+  )
+} 
