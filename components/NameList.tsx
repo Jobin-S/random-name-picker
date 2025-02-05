@@ -6,15 +6,9 @@ interface NameListProps {
   names: string[];
   highlightedName?: string;
   winner?: string;
-  onRemoveName?: (name: string) => void;
 }
 
-export default function NameList({
-  names,
-  highlightedName,
-  winner,
-  onRemoveName,
-}: NameListProps) {
+export default function NameList({ names, highlightedName, winner }: NameListProps) {
   // Use compact mode if there are more than 12 names
   const isCompact = names.length > 12;
   const containerRef = useRef<HTMLDivElement>(null);

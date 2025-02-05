@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback } from "react";
 import dynamic from 'next/dynamic'
 import NameInput from '../components/NameInput'
 import NameList from '../components/NameList'
@@ -28,10 +28,6 @@ export default function Home() {
       setNames([...names, ...uniqueNames]);
     }
   };
-
-  const removeName = (nameToRemove: string) => {
-    setNames(names.filter(name => name !== nameToRemove))
-  }
 
   const startRaffle = useCallback(async () => {
     if (names.length < 2 || isRaffling) return;
